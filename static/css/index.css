@@ -1,0 +1,166 @@
+/* Normalize */
+* {
+    font-weight: inherit;
+    font-size: inherit;
+    border: none;
+    outline: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    color: #c5c8c6;
+    background: #1e1e1e;
+    padding-bottom: 10px;
+}
+
+nav {
+    z-index: 100;
+    color: #ae81ff;
+    text-shadow: -2px 2px 3px rgba(0, 0, 0, 0.7);
+    font-weight: 700;
+    font-size: 20px;
+    text-indent: 20px;
+    line-height: 50px;
+    width: 100%;
+    height: 50px;
+    background: #171717;
+    border-bottom: 1px solid #272727;
+}
+
+main {
+    width: 1156px;
+    margin:0 auto;
+    margin-top: 15px;
+    white-space: nowrap;
+}
+
+#player {
+    width: 856px;
+    display: inline-block;
+    vertical-align: top;
+}
+
+#video {
+    width: 100%;
+    height: 480px;
+    background: #000;
+    box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.2);
+}
+
+#player > h1 {
+    margin-top: 10px;
+}
+
+#player > h2 {
+    margin-top: 5px;
+    color: #676867;
+    font-size: 90%;
+}
+
+#player > p {
+    margin-top: 10px;
+    font-size: 80%;
+    width: 100%;
+    white-space: normal;
+}
+
+#sidebar {
+    font-size: 13px;
+    display: inline-block;
+    margin-left: 10px;
+    width: 290px;
+    background: #282a2e;
+    box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.2);
+}
+
+#sidebar > a {
+    display: block;
+    padding: 10px;
+    position: relative;
+}
+
+#sidebar > a:hover {
+    color: #ae81ff;
+}
+
+#sidebar > a.playing {
+    background: #383a3e;
+}
+
+#sidebar > a + a {
+    border-top: 1px solid #1e1e1e;
+}
+
+#sidebar > a > img {
+    width: 70px;
+}
+
+#sidebar > a > div {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    bottom: 10px;
+    left: 90px;
+}
+
+#sidebar > a > div > h1 {
+    white-space: normal;
+}
+
+#sidebar > a > div > h2 {
+    margin-top: 5px;
+    color: #676867;
+    font-size: 90%;
+}
+
+@media only screen and (max-width: 1156px) {
+    main {
+        width: 940px;
+    }
+    #player {
+        width: 640px;
+    }
+    #video {
+        height: 360px;
+    }
+}
+
+@media only screen and (max-width: 940px) {
+    main {
+        width: 726px;
+    }
+    #player {
+        width: 426px;
+    }
+    #video {
+        height: 240px;
+    }
+}
+
+@media only screen and (max-width: 726px) {
+    main {
+        width: 426px;
+    }
+    #player {
+        width: 426px;
+    }
+    #video {
+        height: 240px;
+    }
+    #sidebar {
+        width: 426px;
+        margin-top: 10px;
+        margin-left: 0;
+        display: block;
+    }
+}
