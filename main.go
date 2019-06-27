@@ -1,20 +1,26 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/wybiral/tube/pkg/app"
 )
 
-const addr = "127.0.0.1:40404"
-
 func main() {
-	a, err := app.NewApp()
+	cfg := app.DefaultConfig()
+	err := cfg.ReadFile("config.json")
+	if err != nil && !os.IsNotExist(err) {
+		log.Fatal(err)
+	}
+	a, err := app.NewApp(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
+	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
 	log.Printf("Serving at http://%s", addr)
-	err = a.Run(addr)
+	err = a.Run()
 	if err != nil {
 		log.Fatal(err)
 	}

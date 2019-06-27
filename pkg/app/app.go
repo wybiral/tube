@@ -4,6 +4,7 @@ import (
 	"errors"
 	"html/template"
 	"log"
+	"net"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -11,16 +12,23 @@ import (
 )
 
 type App struct {
+	Config    *Config
 	Library   *media.Library
 	Playlist  media.Playlist
 	Templates *template.Template
+	Listener  net.Listener
 	Router    *mux.Router
 }
 
-func NewApp() (*App, error) {
-	a := &App{}
+func NewApp(cfg *Config) (*App, error) {
+	if cfg == nil {
+		cfg = DefaultConfig()
+	}
+	a := &App{
+		Config: cfg,
+	}
 	lib := media.NewLibrary()
-	err := lib.Import("./videos")
+	err := lib.Import(cfg.LibraryPath)
 	if err != nil {
 		return nil, err
 	}
@@ -30,6 +38,11 @@ func NewApp() (*App, error) {
 		return nil, errors.New("No valid videos found")
 	}
 	a.Playlist = pl
+	ln, err := newListener(cfg.Server)
+	if err != nil {
+		return nil, err
+	}
+	a.Listener = ln
 	a.Templates = template.Must(template.ParseGlob("templates/*"))
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", a.indexHandler).Methods("GET")
@@ -45,8 +58,8 @@ func NewApp() (*App, error) {
 	return a, nil
 }
 
-func (a *App) Run(addr string) error {
-	return http.ListenAndServe(addr, a.Router)
+func (a *App) Run() error {
+	return http.Serve(a.Listener, a.Router)
 }
 
 func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
@@ -84,7 +97,8 @@ func (a *App) videoHandler(w http.ResponseWriter, r *http.Request) {
 	disposition := "attachment; filename=\"" + title + ".mp4\""
 	w.Header().Set("Content-Disposition", disposition)
 	w.Header().Set("Content-Type", "video/mp4")
-	http.ServeFile(w, r, "./videos/"+id+".mp4")
+	path := a.Config.LibraryPath + "/" + id + ".mp4"
+	http.ServeFile(w, r, path)
 }
 
 func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
