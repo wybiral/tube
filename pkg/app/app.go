@@ -1,12 +1,12 @@
 package app
 
 import (
-	"errors"
 	"html/template"
 	"log"
 	"net"
 	"net/http"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/gorilla/mux"
 	"github.com/wybiral/tube/pkg/media"
 )
@@ -14,7 +14,7 @@ import (
 type App struct {
 	Config    *Config
 	Library   *media.Library
-	Playlist  media.Playlist
+	Watcher   *fsnotify.Watcher
 	Templates *template.Template
 	Listener  net.Listener
 	Router    *mux.Router
@@ -27,17 +27,12 @@ func NewApp(cfg *Config) (*App, error) {
 	a := &App{
 		Config: cfg,
 	}
-	lib := media.NewLibrary()
-	err := lib.Import(cfg.LibraryPath)
+	a.Library = media.NewLibrary()
+	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
-	a.Library = lib
-	pl := lib.Playlist()
-	if len(pl) == 0 {
-		return nil, errors.New("No valid videos found")
-	}
-	a.Playlist = pl
+	a.Watcher = w
 	ln, err := newListener(cfg.Server)
 	if err != nil {
 		return nil, err
@@ -59,12 +54,41 @@ func NewApp(cfg *Config) (*App, error) {
 }
 
 func (a *App) Run() error {
+	path := a.Config.LibraryPath
+	err := a.Library.Import(path)
+	if err != nil {
+		return err
+	}
+	a.Watcher.Add(path)
+	go a.watch()
 	return http.Serve(a.Listener, a.Router)
+}
+
+func (a *App) watch() {
+	for {
+		e, ok := <-a.Watcher.Events
+		if !ok {
+			return
+		}
+		if e.Op&fsnotify.Create > 0 {
+			// add new files to library
+			a.Library.Add(e.Name)
+		} else if e.Op&(fsnotify.Write|fsnotify.Chmod) > 0 {
+			// writes and chmods should remove old file before adding again
+			a.Library.Remove(e.Name)
+			a.Library.Add(e.Name)
+		} else if e.Op&(fsnotify.Remove|fsnotify.Rename) > 0 {
+			// remove and rename just remove file
+			// fsnotify will signal a Create event with the new file name
+			a.Library.Remove(e.Name)
+		}
+	}
 }
 
 func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/")
-	http.Redirect(w, r, "/"+a.Playlist[0].ID, 302)
+	pl := a.Library.Playlist()
+	http.Redirect(w, r, "/"+pl[0].ID, 302)
 }
 
 func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +105,7 @@ func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 		Playlist media.Playlist
 	}{
 		Playing:  playing,
-		Playlist: a.Playlist,
+		Playlist: a.Library.Playlist(),
 	})
 }
 

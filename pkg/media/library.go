@@ -2,11 +2,15 @@ package media
 
 import (
 	"io/ioutil"
+	"log"
+	"path/filepath"
 	"sort"
 	"strings"
+	"sync"
 )
 
 type Library struct {
+	mu     sync.RWMutex
 	Videos map[string]*Video
 }
 
@@ -23,30 +27,47 @@ func (lib *Library) Import(path string) error {
 		return err
 	}
 	for _, info := range files {
-		name := info.Name()
-		v, err := ParseVideo(path + "/" + name)
+		err = lib.Add(path + "/" + info.Name())
 		if err != nil {
 			// Ignore files that can't be parsed
 			continue
 		}
-		// Set modified date property
-		v.Modified = info.ModTime().Format("2006-01-02")
-		// Default title is filename
-		if v.Title == "" {
-			v.Title = name
-		}
-		// ID is name without extension
-		idx := strings.LastIndex(name, ".")
-		if idx == -1 {
-			idx = len(name)
-		}
-		v.ID = name[:idx]
-		lib.Videos[v.ID] = v
 	}
 	return nil
 }
 
+func (lib *Library) Add(path string) error {
+	v, err := ParseVideo(path)
+	if err != nil {
+		return err
+	}
+	lib.mu.Lock()
+	defer lib.mu.Unlock()
+	lib.Videos[v.ID] = v
+	log.Println("Added:", path)
+	return nil
+}
+
+func (lib *Library) Remove(path string) {
+	name := filepath.Base(path)
+	// ID is name without extension
+	idx := strings.LastIndex(name, ".")
+	if idx == -1 {
+		idx = len(name)
+	}
+	id := name[:idx]
+	lib.mu.Lock()
+	defer lib.mu.Unlock()
+	_, ok := lib.Videos[id]
+	if ok {
+		delete(lib.Videos, id)
+		log.Println("Removed:", path)
+	}
+}
+
 func (lib *Library) Playlist() Playlist {
+	lib.mu.RLock()
+	defer lib.mu.RUnlock()
 	pl := make(Playlist, 0)
 	for _, v := range lib.Videos {
 		pl = append(pl, v)
