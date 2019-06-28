@@ -11,10 +11,14 @@
     <nav><a href="/">Tube</a></nav>
     <main>
         <div id="player">
+            {{ if $playing.ID }}
             <video id="video" controls poster="/t/{{ $playing.ID}}" src="/v/{{ $playing.ID }}.mp4"></video>
             <h1>{{ $playing.Title }}</h1>
             <h2>{{ $playing.Modified }}</h2>
             <p>{{ $playing.Description }}</p>
+            {{ else }}
+            <video id="video" controls></video>
+            {{ end }}
         </div>
         <div id="sidebar">
             {{ range $m := .Playlist }}

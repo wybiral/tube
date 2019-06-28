@@ -88,7 +88,17 @@ func (a *App) watch() {
 func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/")
 	pl := a.Library.Playlist()
-	http.Redirect(w, r, "/"+pl[0].ID, 302)
+	if len(pl) > 0 {
+		http.Redirect(w, r, "/"+pl[0].ID, 302)
+	} else {
+		a.Templates.ExecuteTemplate(w, "index.html", &struct {
+			Playing  *media.Video
+			Playlist media.Playlist
+		}{
+			Playing:  &media.Video{ID: ""},
+			Playlist: a.Library.Playlist(),
+		})
+	}
 }
 
 func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
@@ -97,6 +107,13 @@ func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/%s", id)
 	playing, ok := a.Library.Videos[id]
 	if !ok {
+		a.Templates.ExecuteTemplate(w, "index.html", &struct {
+			Playing  *media.Video
+			Playlist media.Playlist
+		}{
+			Playing:  &media.Video{ID: ""},
+			Playlist: a.Library.Playlist(),
+		})
 		return
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
