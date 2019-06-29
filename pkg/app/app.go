@@ -5,8 +5,12 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/url"
+	"path"
+	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
 	"github.com/wybiral/tube/pkg/media"
 )
@@ -44,6 +48,7 @@ func NewApp(cfg *Config) (*App, error) {
 	r.HandleFunc("/v/{id}.mp4", a.videoHandler).Methods("GET")
 	r.HandleFunc("/t/{id}", a.thumbHandler).Methods("GET")
 	r.HandleFunc("/v/{id}", a.pageHandler).Methods("GET")
+	r.HandleFunc("/feed.xml", a.rssHandler).Methods("GET")
 	fsHandler := http.StripPrefix(
 		"/static/",
 		http.FileServer(http.Dir("./static/")),
@@ -158,4 +163,42 @@ func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", m.ThumbType)
 		w.Write(m.Thumb)
 	}
+}
+
+func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
+	cfg := a.Config.Feed
+	now := time.Now()
+	f := &feeds.Feed{
+		Title:       cfg.Title,
+		Link:        &feeds.Link{Href: cfg.Link},
+		Description: cfg.Description,
+		Author: &feeds.Author{
+			Name:  cfg.Author.Name,
+			Email: cfg.Author.Email,
+		},
+		Created:   now,
+		Copyright: cfg.Copyright,
+	}
+	for _, v := range a.Library.Playlist() {
+		u, err := url.Parse(cfg.ExternalURL)
+		if err != nil {
+			return
+		}
+		u.Path = path.Join(u.Path, "v", v.ID)
+		id := u.String()
+		f.Items = append(f.Items, &feeds.Item{
+			Id:          id,
+			Title:       v.Title,
+			Link:        &feeds.Link{Href: id},
+			Description: v.Description,
+			Author: &feeds.Author{
+				Name:  cfg.Author.Name,
+				Email: cfg.Author.Email,
+			},
+			Created: v.Timestamp,
+		})
+	}
+	w.Header().Set("Cache-Control", "public, max-age=7776000")
+	w.Header().Set("Content-Type", "text/xml")
+	f.WriteRss(w)
 }

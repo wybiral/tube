@@ -11,5 +11,5 @@ func (p Playlist) Swap(i, j int) {
 }
 
 func (p Playlist) Less(i, j int) bool {
-	return p[i].ID < p[j].ID
+	return p[i].Timestamp.After(p[j].Timestamp)
 }

@@ -3,5 +3,16 @@
     "server": {
         "host": "127.0.0.1",
         "port": 0
+    },
+    "feed": {
+        "external_url": "http://your-url.example",
+        "title": "Feed Title",
+        "link": "http://your-url.example/about",
+        "description": "Feed Description",
+        "author": {
+            "name": "Author Name",
+            "email": "author@somewhere.example"
+        },
+        "copyright": "Copyright Text"
     }
 }

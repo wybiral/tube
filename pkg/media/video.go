@@ -3,6 +3,7 @@ package media
 import (
 	"os"
 	"strings"
+	"time"
 
 	"github.com/dhowden/tag"
 )
@@ -15,6 +16,7 @@ type Video struct {
 	Thumb       []byte
 	ThumbType   string
 	Modified    string
+	Timestamp   time.Time
 }
 
 func ParseVideo(path string) (*Video, error) {
@@ -26,7 +28,8 @@ func ParseVideo(path string) (*Video, error) {
 	if err != nil {
 		return nil, err
 	}
-	modified := info.ModTime().Format("2006-01-02")
+	timestamp := info.ModTime()
+	modified := timestamp.Format("2006-01-02 03:04 PM")
 	name := info.Name()
 	// ID is name without extension
 	idx := strings.LastIndex(name, ".")
@@ -49,6 +52,7 @@ func ParseVideo(path string) (*Video, error) {
 		Album:       m.Album(),
 		Description: m.Comment(),
 		Modified:    modified,
+		Timestamp:   timestamp,
 	}
 	// Add thumbnail (if exists)
 	p := m.Picture()
