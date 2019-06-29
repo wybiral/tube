@@ -1,12 +1,14 @@
 package app
 
 import (
+	"fmt"
 	"html/template"
 	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 	"time"
 
 	"github.com/fsnotify/fsnotify"
@@ -179,8 +181,16 @@ func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
 		Created:   now,
 		Copyright: cfg.Copyright,
 	}
+	var externalURL string
+	if len(cfg.ExternalURL) > 0 {
+		externalURL = cfg.ExternalURL
+	} else {
+		host := a.Config.Server.Host
+		port := a.Config.Server.Port
+		externalURL = fmt.Sprintf("http://%s:%d", host, port)
+	}
 	for _, v := range a.Library.Playlist() {
-		u, err := url.Parse(cfg.ExternalURL)
+		u, err := url.Parse(externalURL)
 		if err != nil {
 			return
 		}
@@ -191,6 +201,11 @@ func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
 			Title:       v.Title,
 			Link:        &feeds.Link{Href: id},
 			Description: v.Description,
+			Enclosure: &feeds.Enclosure{
+				Url:    id + ".mp4",
+				Length: strconv.FormatInt(v.Size, 10),
+				Type:   "video/mp4",
+			},
 			Author: &feeds.Author{
 				Name:  cfg.Author.Name,
 				Email: cfg.Author.Email,

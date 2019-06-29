@@ -16,6 +16,7 @@ type Video struct {
 	Thumb       []byte
 	ThumbType   string
 	Modified    string
+	Size        int64
 	Timestamp   time.Time
 }
 
@@ -28,6 +29,7 @@ func ParseVideo(path string) (*Video, error) {
 	if err != nil {
 		return nil, err
 	}
+	size := info.Size()
 	timestamp := info.ModTime()
 	modified := timestamp.Format("2006-01-02 03:04 PM")
 	name := info.Name()
@@ -52,6 +54,7 @@ func ParseVideo(path string) (*Video, error) {
 		Album:       m.Album(),
 		Description: m.Comment(),
 		Modified:    modified,
+		Size:        size,
 		Timestamp:   timestamp,
 	}
 	// Add thumbnail (if exists)
