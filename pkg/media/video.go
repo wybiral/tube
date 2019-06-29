@@ -8,6 +8,7 @@ import (
 	"github.com/dhowden/tag"
 )
 
+// Video represents metadata for a single video.
 type Video struct {
 	ID          string
 	Title       string
@@ -20,6 +21,7 @@ type Video struct {
 	Timestamp   time.Time
 }
 
+// ParseVideo parses a video file's metadata and returns a Video.
 func ParseVideo(path string) (*Video, error) {
 	f, err := os.Open(path)
 	if err != nil {

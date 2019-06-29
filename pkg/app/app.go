@@ -17,6 +17,7 @@ import (
 	"github.com/wybiral/tube/pkg/media"
 )
 
+// App represents main application.
 type App struct {
 	Config    *Config
 	Library   *media.Library
@@ -26,6 +27,7 @@ type App struct {
 	Router    *mux.Router
 }
 
+// NewApp returns a new instance of App from Config.
 func NewApp(cfg *Config) (*App, error) {
 	if cfg == nil {
 		cfg = DefaultConfig()
@@ -33,24 +35,30 @@ func NewApp(cfg *Config) (*App, error) {
 	a := &App{
 		Config: cfg,
 	}
+	// Setup Library
 	a.Library = media.NewLibrary()
+	// Setup Watcher
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, err
 	}
 	a.Watcher = w
+	// Setup Listener
 	ln, err := newListener(cfg.Server)
 	if err != nil {
 		return nil, err
 	}
 	a.Listener = ln
+	// Setup Templates
 	a.Templates = template.Must(template.ParseGlob("templates/*"))
+	// Setup Router
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", a.indexHandler).Methods("GET")
 	r.HandleFunc("/v/{id}.mp4", a.videoHandler).Methods("GET")
 	r.HandleFunc("/t/{id}", a.thumbHandler).Methods("GET")
 	r.HandleFunc("/v/{id}", a.pageHandler).Methods("GET")
 	r.HandleFunc("/feed.xml", a.rssHandler).Methods("GET")
+	// Static file handler
 	fsHandler := http.StripPrefix(
 		"/static/",
 		http.FileServer(http.Dir("./static/")),
@@ -60,6 +68,7 @@ func NewApp(cfg *Config) (*App, error) {
 	return a, nil
 }
 
+// Run imports the library and starts server.
 func (a *App) Run() error {
 	path := a.Config.LibraryPath
 	err := a.Library.Import(path)
@@ -71,6 +80,7 @@ func (a *App) Run() error {
 	return http.Serve(a.Listener, a.Router)
 }
 
+// Watch the library path and update Library with changes.
 func (a *App) watch() {
 	for {
 		e, ok := <-a.Watcher.Events
@@ -92,6 +102,7 @@ func (a *App) watch() {
 	}
 }
 
+// HTTP handler for /
 func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/")
 	pl := a.Library.Playlist()
@@ -108,6 +119,7 @@ func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HTTP handler for /v/id
 func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -133,6 +145,7 @@ func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+// HTTP handler for /v/id.mp4
 func (a *App) videoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -149,6 +162,7 @@ func (a *App) videoHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, path)
 }
 
+// HTTP handler for /t/id
 func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
@@ -167,6 +181,7 @@ func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HTTP handler for /feed.xml
 func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
 	cfg := a.Config.Feed
 	now := time.Now()

@@ -1,3 +1,7 @@
+// Instead of using the default new.Listener this file will construct a custom
+// one. The main purpose for this is to have more control over the settings
+// (like keep-alive) and to retrieve the assigned port when using port 0.
+
 package app
 
 import (

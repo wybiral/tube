@@ -5,17 +5,20 @@ import (
 	"os"
 )
 
+// Config settings for main App.
 type Config struct {
 	LibraryPath string        `json:"library"`
 	Server      *ServerConfig `json:"server"`
 	Feed        *FeedConfig   `json:"feed"`
 }
 
+// ServerConfig settings for App Server.
 type ServerConfig struct {
 	Host string `json:"host"`
 	Port int    `json:"port"`
 }
 
+// FeedConfig settings for App Feed.
 type FeedConfig struct {
 	ExternalURL string `json:"external_url"`
 	Title       string `json:"title"`
@@ -28,6 +31,7 @@ type FeedConfig struct {
 	Copyright string `json:"copyright"`
 }
 
+// DefaultConfig returns Config initialized with default values.
 func DefaultConfig() *Config {
 	return &Config{
 		LibraryPath: "videos",
@@ -41,6 +45,7 @@ func DefaultConfig() *Config {
 	}
 }
 
+// ReadFile reads a JSON file into Config.
 func (c *Config) ReadFile(path string) error {
 	f, err := os.Open(path)
 	if err != nil {

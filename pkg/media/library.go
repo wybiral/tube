@@ -9,11 +9,13 @@ import (
 	"sync"
 )
 
+// Library manages importing and retrieving video data.
 type Library struct {
 	mu     sync.RWMutex
 	Videos map[string]*Video
 }
 
+// NewLibrary returns new instance of Library.
 func NewLibrary() *Library {
 	lib := &Library{
 		Videos: make(map[string]*Video),
@@ -21,6 +23,7 @@ func NewLibrary() *Library {
 	return lib
 }
 
+// Import adds all valid videos from a given path.
 func (lib *Library) Import(path string) error {
 	files, err := ioutil.ReadDir(path)
 	if err != nil {
@@ -36,6 +39,7 @@ func (lib *Library) Import(path string) error {
 	return nil
 }
 
+// Add adds a single video from a given file path.
 func (lib *Library) Add(path string) error {
 	v, err := ParseVideo(path)
 	if err != nil {
@@ -48,6 +52,7 @@ func (lib *Library) Add(path string) error {
 	return nil
 }
 
+// Remove removes a single video from a given file path.
 func (lib *Library) Remove(path string) {
 	name := filepath.Base(path)
 	// ID is name without extension
@@ -65,6 +70,7 @@ func (lib *Library) Remove(path string) {
 	}
 }
 
+// Playlist returns a sorted Playlist of all videos.
 func (lib *Library) Playlist() Playlist {
 	lib.mu.RLock()
 	defer lib.mu.RUnlock()
