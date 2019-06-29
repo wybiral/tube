@@ -1,3 +1,4 @@
+// Package app manages main application server.
 package app
 
 import (
