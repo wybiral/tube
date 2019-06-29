@@ -43,7 +43,7 @@ func NewApp(cfg *Config) (*App, error) {
 	r.HandleFunc("/", a.indexHandler).Methods("GET")
 	r.HandleFunc("/v/{id}.mp4", a.videoHandler).Methods("GET")
 	r.HandleFunc("/t/{id}", a.thumbHandler).Methods("GET")
-	r.HandleFunc("/{id}", a.pageHandler).Methods("GET")
+	r.HandleFunc("/v/{id}", a.pageHandler).Methods("GET")
 	fsHandler := http.StripPrefix(
 		"/static/",
 		http.FileServer(http.Dir("./static/")),
@@ -89,7 +89,7 @@ func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 	log.Printf("/")
 	pl := a.Library.Playlist()
 	if len(pl) > 0 {
-		http.Redirect(w, r, "/"+pl[0].ID, 302)
+		http.Redirect(w, r, "/v/"+pl[0].ID, 302)
 	} else {
 		a.Templates.ExecuteTemplate(w, "index.html", &struct {
 			Playing  *media.Video
@@ -104,7 +104,7 @@ func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
-	log.Printf("/%s", id)
+	log.Printf("/v/%s", id)
 	playing, ok := a.Library.Videos[id]
 	if !ok {
 		a.Templates.ExecuteTemplate(w, "index.html", &struct {

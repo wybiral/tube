@@ -23,9 +23,9 @@
         <div id="sidebar">
             {{ range $m := .Playlist }}
             {{ if eq $m.ID $playing.ID }}
-            <a href="/{{ $m.ID }}" class="playing">
+            <a href="/v/{{ $m.ID }}" class="playing">
             {{ else }}
-            <a href="/{{ $m.ID }}">
+            <a href="/v/{{ $m.ID }}">
             {{ end }}
                 <img src="/t/{{ $m.ID }}">
                 <div>
