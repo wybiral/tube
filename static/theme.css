@@ -1,4 +1,9 @@
-/* Normalize */
+:root {
+    --main-title-color: #ae81ff;
+    --link-hover-color: #ae81ff;
+}
+
+/* normalize */
 * {
     font-weight: inherit;
     font-size: inherit;
@@ -25,7 +30,7 @@ body {
 
 nav {
     z-index: 100;
-    color: #ae81ff;
+    color: var(--main-title-color);
     text-shadow: -2px 2px 3px rgba(0, 0, 0, 0.7);
     font-weight: 700;
     font-size: 20px;
@@ -45,11 +50,12 @@ main {
 }
 
 #player {
-    width: 856px;
+    width: 854px;
     display: inline-block;
     vertical-align: top;
 }
 
+/* 480p */
 #video {
     width: 100%;
     height: 480px;
@@ -74,7 +80,7 @@ main {
     white-space: normal;
 }
 
-#sidebar {
+#playlist {
     font-size: 13px;
     display: inline-block;
     margin-left: 10px;
@@ -83,29 +89,30 @@ main {
     box-shadow: 0 3px 7px 0 rgba(0, 0, 0, 0.2);
 }
 
-#sidebar > a {
+#playlist > a {
     display: block;
     padding: 10px;
     position: relative;
+    min-height: 54px;
 }
 
-#sidebar > a:hover {
-    color: #ae81ff;
+#playlist > a:hover {
+    color: var(--link-hover-color);
 }
 
-#sidebar > a.playing {
+#playlist > a.playing {
     background: #383a3e;
 }
 
-#sidebar > a + a {
+#playlist > a + a {
     border-top: 1px solid #1e1e1e;
 }
 
-#sidebar > a > img {
+#playlist > a > img {
     width: 70px;
 }
 
-#sidebar > a > div {
+#playlist > a > div {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -113,17 +120,18 @@ main {
     left: 90px;
 }
 
-#sidebar > a > div > h1 {
+#playlist > a > div > h1 {
     white-space: normal;
 }
 
-#sidebar > a > div > h2 {
+#playlist > a > div > h2 {
     margin-top: 5px;
     color: #676867;
     font-size: 90%;
 }
 
-@media only screen and (max-width: 1156px) {
+/* 360p */
+@media only screen and (max-width: 1180px) {
     main {
         width: 940px;
     }
@@ -135,7 +143,8 @@ main {
     }
 }
 
-@media only screen and (max-width: 940px) {
+/* 240p */
+@media only screen and (max-width: 965px) {
     main {
         width: 726px;
     }
@@ -147,7 +156,8 @@ main {
     }
 }
 
-@media only screen and (max-width: 726px) {
+/* 240p with shifted playlist */
+@media only screen and (max-width: 750px) {
     main {
         width: 426px;
     }
@@ -157,8 +167,27 @@ main {
     #video {
         height: 240px;
     }
-    #sidebar {
+    #playlist {
         width: 426px;
+        margin-top: 10px;
+        margin-left: 0;
+        display: block;
+    }
+}
+
+/* responsive width with shifted playlist */
+@media only screen and (max-width: 440px) {
+    main {
+        width: 100%;
+    }
+    #player {
+        width: 100%;
+    }
+    #video {
+        height: auto;
+    }
+    #playlist {
+        width: 100%;
         margin-top: 10px;
         margin-left: 0;
         display: block;

@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
-    <link rel="stylesheet" type="text/css" href="/static/css/index.css">
+    <link rel="stylesheet" type="text/css" href="/static/theme.css">
 </head>
 <body>
     <nav><a href="/">Tube</a></nav>
@@ -20,7 +20,7 @@
             <video id="video" controls></video>
             {{ end }}
         </div>
-        <div id="sidebar">
+        <div id="playlist">
             {{ range $m := .Playlist }}
             {{ if eq $m.ID $playing.ID }}
             <a href="/v/{{ $m.ID }}" class="playing">
