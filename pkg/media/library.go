@@ -1,9 +1,10 @@
 package media
 
 import (
+	"errors"
 	"io/ioutil"
 	"log"
-	"path/filepath"
+	"path"
 	"sort"
 	"strings"
 	"sync"
@@ -12,25 +13,34 @@ import (
 // Library manages importing and retrieving video data.
 type Library struct {
 	mu     sync.RWMutex
+	Paths  map[string]*Path
 	Videos map[string]*Video
 }
 
 // NewLibrary returns new instance of Library.
 func NewLibrary() *Library {
 	lib := &Library{
+		Paths:  make(map[string]*Path),
 		Videos: make(map[string]*Video),
 	}
 	return lib
 }
 
+// AddPath adds a media path to the library.
+func (lib *Library) AddPath(p *Path) {
+	lib.mu.Lock()
+	defer lib.mu.Unlock()
+	lib.Paths[p.Path] = p
+}
+
 // Import adds all valid videos from a given path.
-func (lib *Library) Import(path string) error {
-	files, err := ioutil.ReadDir(path)
+func (lib *Library) Import(p *Path) error {
+	files, err := ioutil.ReadDir(p.Path)
 	if err != nil {
 		return err
 	}
 	for _, info := range files {
-		err = lib.Add(path + "/" + info.Name())
+		err = lib.Add(path.Join(p.Path, info.Name()))
 		if err != nil {
 			// Ignore files that can't be parsed
 			continue
@@ -40,33 +50,48 @@ func (lib *Library) Import(path string) error {
 }
 
 // Add adds a single video from a given file path.
-func (lib *Library) Add(path string) error {
-	v, err := ParseVideo(path)
+func (lib *Library) Add(filepath string) error {
+	lib.mu.Lock()
+	defer lib.mu.Unlock()
+	d := path.Dir(filepath)
+	p, ok := lib.Paths[d]
+	if !ok {
+		log.Println(d)
+		return errors.New("media: path not found")
+	}
+	n := path.Base(filepath)
+	v, err := ParseVideo(p, n)
 	if err != nil {
 		return err
 	}
-	lib.mu.Lock()
-	defer lib.mu.Unlock()
 	lib.Videos[v.ID] = v
-	log.Println("Added:", path)
+	log.Println("Added:", v.Path)
 	return nil
 }
 
 // Remove removes a single video from a given file path.
-func (lib *Library) Remove(path string) {
-	name := filepath.Base(path)
-	// ID is name without extension
-	idx := strings.LastIndex(name, ".")
-	if idx == -1 {
-		idx = len(name)
-	}
-	id := name[:idx]
+func (lib *Library) Remove(filepath string) {
 	lib.mu.Lock()
 	defer lib.mu.Unlock()
-	_, ok := lib.Videos[id]
+	d := path.Dir(filepath)
+	p, ok := lib.Paths[d]
+	if !ok {
+		return
+	}
+	n := path.Base(filepath)
+	// ID is name without extension
+	idx := strings.LastIndex(n, ".")
+	if idx == -1 {
+		idx = len(n)
+	}
+	id := n[:idx]
+	if len(p.Prefix) > 0 {
+		id = path.Join(p.Prefix, id)
+	}
+	v, ok := lib.Videos[id]
 	if ok {
 		delete(lib.Videos, id)
-		log.Println("Removed:", path)
+		log.Println("Removed:", v.Path)
 	}
 }
 

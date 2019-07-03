@@ -7,9 +7,15 @@ import (
 
 // Config settings for main App.
 type Config struct {
-	LibraryPath string        `json:"library"`
-	Server      *ServerConfig `json:"server"`
-	Feed        *FeedConfig   `json:"feed"`
+	Library []*PathConfig `json:"library"`
+	Server  *ServerConfig `json:"server"`
+	Feed    *FeedConfig   `json:"feed"`
+}
+
+// PathConfig settings for media library path.
+type PathConfig struct {
+	Path   string `json:"path"`
+	Prefix string `json:"prefix"`
 }
 
 // ServerConfig settings for App Server.
@@ -34,7 +40,12 @@ type FeedConfig struct {
 // DefaultConfig returns Config initialized with default values.
 func DefaultConfig() *Config {
 	return &Config{
-		LibraryPath: "videos",
+		Library: []*PathConfig{
+			&PathConfig{
+				Path:   "videos",
+				Prefix: "",
+			},
+		},
 		Server: &ServerConfig{
 			Host: "127.0.0.1",
 			Port: 0,
