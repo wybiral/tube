@@ -2,6 +2,7 @@ package media
 
 import (
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -18,12 +19,14 @@ type Video struct {
 	ThumbType   string
 	Modified    string
 	Size        int64
+	Path        string
 	Timestamp   time.Time
 }
 
 // ParseVideo parses a video file's metadata and returns a Video.
-func ParseVideo(path string) (*Video, error) {
-	f, err := os.Open(path)
+func ParseVideo(p *Path, name string) (*Video, error) {
+	pth := path.Join(p.Path, name)
+	f, err := os.Open(pth)
 	if err != nil {
 		return nil, err
 	}
@@ -34,13 +37,16 @@ func ParseVideo(path string) (*Video, error) {
 	size := info.Size()
 	timestamp := info.ModTime()
 	modified := timestamp.Format("2006-01-02 03:04 PM")
-	name := info.Name()
 	// ID is name without extension
 	idx := strings.LastIndex(name, ".")
 	if idx == -1 {
 		idx = len(name)
 	}
 	id := name[:idx]
+	if len(p.Prefix) > 0 {
+		// if there's a prefix prepend it to the ID
+		id = path.Join(p.Prefix, name[:idx])
+	}
 	m, err := tag.ReadFrom(f)
 	if err != nil {
 		return nil, err
@@ -57,13 +63,14 @@ func ParseVideo(path string) (*Video, error) {
 		Description: m.Comment(),
 		Modified:    modified,
 		Size:        size,
+		Path:        pth,
 		Timestamp:   timestamp,
 	}
 	// Add thumbnail (if exists)
-	p := m.Picture()
-	if p != nil {
-		v.Thumb = p.Data
-		v.ThumbType = p.MIMEType
+	pic := m.Picture()
+	if pic != nil {
+		v.Thumb = pic.Data
+		v.ThumbType = pic.MIMEType
 	}
 	return v, nil
 }

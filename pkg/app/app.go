@@ -56,8 +56,11 @@ func NewApp(cfg *Config) (*App, error) {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", a.indexHandler).Methods("GET")
 	r.HandleFunc("/v/{id}.mp4", a.videoHandler).Methods("GET")
+	r.HandleFunc("/v/{prefix}/{id}.mp4", a.videoHandler).Methods("GET")
 	r.HandleFunc("/t/{id}", a.thumbHandler).Methods("GET")
+	r.HandleFunc("/t/{prefix}/{id}", a.thumbHandler).Methods("GET")
 	r.HandleFunc("/v/{id}", a.pageHandler).Methods("GET")
+	r.HandleFunc("/v/{prefix}/{id}", a.pageHandler).Methods("GET")
 	r.HandleFunc("/feed.xml", a.rssHandler).Methods("GET")
 	// Static file handler
 	fsHandler := http.StripPrefix(
@@ -71,12 +74,21 @@ func NewApp(cfg *Config) (*App, error) {
 
 // Run imports the library and starts server.
 func (a *App) Run() error {
-	path := a.Config.LibraryPath
-	err := a.Library.Import(path)
-	if err != nil {
-		return err
+	for _, pc := range a.Config.Library {
+		p := &media.Path{
+			Path:   pc.Path,
+			Prefix: pc.Prefix,
+		}
+		err := a.Library.AddPath(p)
+		if err != nil {
+			return err
+		}
+		err = a.Library.Import(p)
+		if err != nil {
+			return err
+		}
+		a.Watcher.Add(p.Path)
 	}
-	a.Watcher.Add(path)
 	go a.watch()
 	return http.Serve(a.Listener, a.Router)
 }
@@ -124,6 +136,10 @@ func (a *App) indexHandler(w http.ResponseWriter, r *http.Request) {
 func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	prefix, ok := vars["prefix"]
+	if ok {
+		id = path.Join(prefix, id)
+	}
 	log.Printf("/v/%s", id)
 	playing, ok := a.Library.Videos[id]
 	if !ok {
@@ -150,6 +166,10 @@ func (a *App) pageHandler(w http.ResponseWriter, r *http.Request) {
 func (a *App) videoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	prefix, ok := vars["prefix"]
+	if ok {
+		id = path.Join(prefix, id)
+	}
 	log.Printf("/v/%s", id)
 	m, ok := a.Library.Videos[id]
 	if !ok {
@@ -159,14 +179,17 @@ func (a *App) videoHandler(w http.ResponseWriter, r *http.Request) {
 	disposition := "attachment; filename=\"" + title + ".mp4\""
 	w.Header().Set("Content-Disposition", disposition)
 	w.Header().Set("Content-Type", "video/mp4")
-	path := a.Config.LibraryPath + "/" + id + ".mp4"
-	http.ServeFile(w, r, path)
+	http.ServeFile(w, r, m.Path)
 }
 
 // HTTP handler for /t/id
 func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
+	prefix, ok := vars["prefix"]
+	if ok {
+		id = path.Join(prefix, id)
+	}
 	log.Printf("/t/%s", id)
 	m, ok := a.Library.Videos[id]
 	if !ok {
