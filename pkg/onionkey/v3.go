@@ -1,3 +1,5 @@
+// Implements Tor v3 onion key based on ed25519.
+
 package onionkey
 
 import (
