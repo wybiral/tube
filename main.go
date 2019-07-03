@@ -19,7 +19,7 @@ func main() {
 		log.Fatal(err)
 	}
 	addr := fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port)
-	log.Printf("Serving at http://%s", addr)
+	log.Printf("Local server: http://%s", addr)
 	err = a.Run()
 	if err != nil {
 		log.Fatal(err)
