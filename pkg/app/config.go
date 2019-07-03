@@ -10,6 +10,7 @@ type Config struct {
 	Library []*PathConfig `json:"library"`
 	Server  *ServerConfig `json:"server"`
 	Feed    *FeedConfig   `json:"feed"`
+	Tor     *TorConfig    `json:"tor,omitempty"`
 }
 
 // PathConfig settings for media library path.
@@ -37,6 +38,19 @@ type FeedConfig struct {
 	Copyright string `json:"copyright"`
 }
 
+// TorConfig stores tor configuration.
+type TorConfig struct {
+	Enable     bool                 `json:"enable"`
+	Controller *TorControllerConfig `json:"controller"`
+}
+
+// TorControllerConfig stores tor controller configuration.
+type TorControllerConfig struct {
+	Host     string `json:"host"`
+	Port     int    `json:"port"`
+	Password string `json:"password,omitempty"`
+}
+
 // DefaultConfig returns Config initialized with default values.
 func DefaultConfig() *Config {
 	return &Config{
@@ -52,6 +66,13 @@ func DefaultConfig() *Config {
 		},
 		Feed: &FeedConfig{
 			ExternalURL: "http://localhost",
+		},
+		Tor: &TorConfig{
+			Enable: false,
+			Controller: &TorControllerConfig{
+				Host: "127.0.0.1",
+				Port: 9051,
+			},
 		},
 	}
 }

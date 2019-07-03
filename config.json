@@ -19,5 +19,12 @@
             "email": "author@somewhere.example"
         },
         "copyright": "Copyright Text"
+    },
+    "tor": {
+        "enable": true,
+        "controller": {
+            "host": "127.0.0.1",
+            "port": 9051
+        }
     }
 }

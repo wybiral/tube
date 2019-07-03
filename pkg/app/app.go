@@ -16,6 +16,7 @@ import (
 	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
 	"github.com/wybiral/tube/pkg/media"
+	"github.com/wybiral/tube/pkg/onionkey"
 )
 
 // App represents main application.
@@ -24,6 +25,7 @@ type App struct {
 	Library   *media.Library
 	Watcher   *fsnotify.Watcher
 	Templates *template.Template
+	Tor       *tor
 	Listener  net.Listener
 	Router    *mux.Router
 }
@@ -52,6 +54,14 @@ func NewApp(cfg *Config) (*App, error) {
 	a.Listener = ln
 	// Setup Templates
 	a.Templates = template.Must(template.ParseGlob("templates/*"))
+	// Setup Tor
+	if cfg.Tor.Enable {
+		t, err := newTor(cfg.Tor)
+		if err != nil {
+			return nil, err
+		}
+		a.Tor = t
+	}
 	// Setup Router
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/", a.indexHandler).Methods("GET")
@@ -74,6 +84,27 @@ func NewApp(cfg *Config) (*App, error) {
 
 // Run imports the library and starts server.
 func (a *App) Run() error {
+	if a.Tor != nil {
+		var err error
+		cs := a.Config.Server
+		key := a.Tor.OnionKey
+		if key == nil {
+			key, err = onionkey.GenerateKey()
+			if err != nil {
+				return err
+			}
+		}
+		onion, err := key.Onion()
+		if err != nil {
+			return err
+		}
+		onion.Ports[80] = fmt.Sprintf("%s:%d", cs.Host, cs.Port)
+		err = a.Tor.Controller.AddOnion(onion)
+		if err != nil {
+			return err
+		}
+		log.Printf("Onion service: http://%s.onion", onion.ServiceID)
+	}
 	for _, pc := range a.Config.Library {
 		p := &media.Path{
 			Path:   pc.Path,
