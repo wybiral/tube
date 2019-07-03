@@ -74,9 +74,11 @@ func (lib *Library) Remove(path string) {
 func (lib *Library) Playlist() Playlist {
 	lib.mu.RLock()
 	defer lib.mu.RUnlock()
-	pl := make(Playlist, 0)
+	pl := make(Playlist, len(lib.Videos))
+	i := 0
 	for _, v := range lib.Videos {
-		pl = append(pl, v)
+		pl[i] = v
+		i++
 	}
 	sort.Sort(pl)
 	return pl
