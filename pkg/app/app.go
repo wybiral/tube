@@ -89,30 +89,8 @@ func (a *App) Run() error {
 		}
 		a.Watcher.Add(p.Path)
 	}
-	go a.watch()
+	go startWatcher(a)
 	return http.Serve(a.Listener, a.Router)
-}
-
-// Watch the library path and update Library with changes.
-func (a *App) watch() {
-	for {
-		e, ok := <-a.Watcher.Events
-		if !ok {
-			return
-		}
-		if e.Op&fsnotify.Create > 0 {
-			// add new files to library
-			a.Library.Add(e.Name)
-		} else if e.Op&(fsnotify.Write|fsnotify.Chmod) > 0 {
-			// writes and chmods should remove old file before adding again
-			a.Library.Remove(e.Name)
-			a.Library.Add(e.Name)
-		} else if e.Op&(fsnotify.Remove|fsnotify.Rename) > 0 {
-			// remove and rename just remove file
-			// fsnotify will signal a Create event with the new file name
-			a.Library.Remove(e.Name)
-		}
-	}
 }
 
 // HTTP handler for /
