@@ -27,10 +27,20 @@ func NewLibrary() *Library {
 }
 
 // AddPath adds a media path to the library.
-func (lib *Library) AddPath(p *Path) {
+func (lib *Library) AddPath(p *Path) error {
 	lib.mu.Lock()
 	defer lib.mu.Unlock()
+	// make sure new path doesn't collide with existing ones
+	for _, p2 := range lib.Paths {
+		if p.Path == p2.Path {
+			return errors.New("media: duplicate library path")
+		}
+		if p.Prefix == p2.Prefix {
+			return errors.New("media: duplicate library prefix")
+		}
+	}
 	lib.Paths[p.Path] = p
+	return nil
 }
 
 // Import adds all valid videos from a given path.

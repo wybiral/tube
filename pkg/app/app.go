@@ -79,8 +79,11 @@ func (a *App) Run() error {
 			Path:   pc.Path,
 			Prefix: pc.Prefix,
 		}
-		a.Library.AddPath(p)
-		err := a.Library.Import(p)
+		err := a.Library.AddPath(p)
+		if err != nil {
+			return err
+		}
+		err = a.Library.Import(p)
 		if err != nil {
 			return err
 		}
