@@ -1,3 +1,5 @@
+// Package onionkey manages onion service key generation, serialization, and
+// service ID calculation. Currently only supports version 3 onions.
 package onionkey
 
 import (
