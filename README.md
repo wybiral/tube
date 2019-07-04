@@ -7,7 +7,8 @@ Some of the key features include:
 - No database (video info pulled from file metadata)
 - No JavaScript (the player UI is entirely HTML)
 - Easy to customize CSS and HTML template
-- Automatically generates RSS feed
+- Automatically generates RSS feed (at `/feed.xml`)
+- Builtin Tor onion service support
 - Clean, simple, familiar UI
 
 Currently only supports MP4 video files so you may need to re-encode your media to MP4 using something like [ffmpeg](https://ffmpeg.org/).
