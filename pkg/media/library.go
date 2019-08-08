@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 	"path"
+	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
@@ -60,16 +61,16 @@ func (lib *Library) Import(p *Path) error {
 }
 
 // Add adds a single video from a given file path.
-func (lib *Library) Add(filepath string) error {
+func (lib *Library) Add(fp string) error {
 	lib.mu.Lock()
 	defer lib.mu.Unlock()
-	d := path.Dir(filepath)
+	fp = filepath.ToSlash(fp)
+	d := path.Dir(fp)
 	p, ok := lib.Paths[d]
 	if !ok {
-		log.Println(d)
 		return errors.New("media: path not found")
 	}
-	n := path.Base(filepath)
+	n := path.Base(fp)
 	v, err := ParseVideo(p, n)
 	if err != nil {
 		return err
@@ -80,15 +81,16 @@ func (lib *Library) Add(filepath string) error {
 }
 
 // Remove removes a single video from a given file path.
-func (lib *Library) Remove(filepath string) {
+func (lib *Library) Remove(fp string) {
 	lib.mu.Lock()
 	defer lib.mu.Unlock()
-	d := path.Dir(filepath)
+	fp = filepath.ToSlash(fp)
+	d := path.Dir(fp)
 	p, ok := lib.Paths[d]
 	if !ok {
 		return
 	}
-	n := path.Base(filepath)
+	n := path.Base(fp)
 	// ID is name without extension
 	idx := strings.LastIndex(n, ".")
 	if idx == -1 {

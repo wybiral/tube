@@ -30,6 +30,7 @@ func ParseVideo(p *Path, name string) (*Video, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer f.Close()
 	info, err := f.Stat()
 	if err != nil {
 		return nil, err
