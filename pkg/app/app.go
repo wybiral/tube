@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"path"
 	"strconv"
 	"time"
@@ -94,6 +95,7 @@ func (a *App) Run() error {
 			if err != nil {
 				return err
 			}
+			a.Tor.OnionKey = key
 		}
 		onion, err := key.Onion()
 		if err != nil {
@@ -233,10 +235,21 @@ func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
 	var externalURL string
 	if len(cfg.ExternalURL) > 0 {
 		externalURL = cfg.ExternalURL
+	} else if a.Tor != nil {
+		onion, err := a.Tor.OnionKey.Onion()
+		if err != nil {
+			return
+		}
+		externalURL = fmt.Sprintf("http://%s.onion", onion.ServiceID)
 	} else {
-		host := a.Config.Server.Host
-		port := a.Config.Server.Port
-		externalURL = fmt.Sprintf("http://%s:%d", host, port)
+		hostname, err := os.Hostname()
+		if err != nil {
+			host := a.Config.Server.Host
+			port := a.Config.Server.Port
+			externalURL = fmt.Sprintf("http://%s:%d", host, port)
+		} else {
+			externalURL = fmt.Sprintf("http://%s", hostname)
+		}
 	}
 	for _, v := range a.Library.Playlist() {
 		u, err := url.Parse(externalURL)
