@@ -27,10 +27,10 @@ func startWatcher(a *App) {
 	for {
 		select {
 		case e := <-a.Watcher.Events:
-			if e.Op&removeFlags > 0 {
+			if e.Op&removeFlags != 0 {
 				removeEvents[e.Name] = struct{}{}
 			}
-			if e.Op&addFlags > 0 {
+			if e.Op&addFlags != 0 {
 				addEvents[e.Name] = struct{}{}
 			}
 			// reset timer
