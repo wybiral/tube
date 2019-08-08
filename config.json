@@ -21,7 +21,7 @@
         "copyright": "Copyright Text"
     },
     "tor": {
-        "enable": true,
+        "enable": false,
         "controller": {
             "host": "127.0.0.1",
             "port": 9051
