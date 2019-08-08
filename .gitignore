@@ -1,3 +1,4 @@
 videos/*
 !videos/README.md
 onion.key
+build/bin
