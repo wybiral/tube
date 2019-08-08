@@ -36,6 +36,7 @@ func startWatcher(a *App) {
 			// reset timer
 			timer.Reset(debounceTimeout)
 		case <-timer.C:
+			eventCount := len(removeEvents) + len(addEvents)
 			// handle remove events first
 			if len(removeEvents) > 0 {
 				for p := range removeEvents {
@@ -51,6 +52,9 @@ func startWatcher(a *App) {
 				}
 				// clear map
 				addEvents = make(map[string]struct{})
+			}
+			if eventCount > 0 {
+				buildFeed(a)
 			}
 			// reset timer
 			timer.Reset(debounceTimeout)
