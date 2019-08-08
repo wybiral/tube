@@ -19,7 +19,15 @@ By default the server is configured to run on 127.0.0.1:0 which will assign a ra
 
 # installation
 
-Currently there are no prebuilt packages or anything so you'll need Golang.
+## from release
+
+1. Download [release](https://github.com/wybiral/tube/releases) for your platform
+2. Extract zip archive
+3. Run `tube` executable to start server (this will output the URL for accessing from a browser)
+4. Move videos to `videos` directory
+5. Open the URL from step 3 and enjoy!
+
+## from source
 
 1. [Install Golang](https://golang.org/doc/install) if you don't already have it
 2. `go get github.com/wybiral/tube`
