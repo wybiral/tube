@@ -2,6 +2,7 @@
 package app
 
 import (
+	"errors"
 	"fmt"
 	"html/template"
 	"log"
@@ -101,7 +102,7 @@ func (a *App) Run() error {
 		onion.Ports[80] = fmt.Sprintf("%s:%d", cs.Host, cs.Port)
 		err = a.Tor.Controller.AddOnion(onion)
 		if err != nil {
-			return err
+			return errors.New("unable to start Tor onion service")
 		}
 		log.Printf("Onion service: http://%s.onion", onion.ServiceID)
 	}
