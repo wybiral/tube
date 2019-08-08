@@ -8,14 +8,9 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"net/url"
-	"os"
 	"path"
-	"strconv"
-	"time"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
 	"github.com/wybiral/tube/pkg/media"
 	"github.com/wybiral/tube/pkg/onionkey"
@@ -27,6 +22,7 @@ type App struct {
 	Library   *media.Library
 	Watcher   *fsnotify.Watcher
 	Templates *template.Template
+	Feed      []byte
 	Tor       *tor
 	Listener  net.Listener
 	Router    *mux.Router
@@ -123,6 +119,7 @@ func (a *App) Run() error {
 		}
 		a.Watcher.Add(p.Path)
 	}
+	buildFeed(a)
 	go startWatcher(a)
 	return http.Serve(a.Listener, a.Router)
 }
@@ -219,63 +216,7 @@ func (a *App) thumbHandler(w http.ResponseWriter, r *http.Request) {
 
 // HTTP handler for /feed.xml
 func (a *App) rssHandler(w http.ResponseWriter, r *http.Request) {
-	cfg := a.Config.Feed
-	now := time.Now()
-	f := &feeds.Feed{
-		Title:       cfg.Title,
-		Link:        &feeds.Link{Href: cfg.Link},
-		Description: cfg.Description,
-		Author: &feeds.Author{
-			Name:  cfg.Author.Name,
-			Email: cfg.Author.Email,
-		},
-		Created:   now,
-		Copyright: cfg.Copyright,
-	}
-	var externalURL string
-	if len(cfg.ExternalURL) > 0 {
-		externalURL = cfg.ExternalURL
-	} else if a.Tor != nil {
-		onion, err := a.Tor.OnionKey.Onion()
-		if err != nil {
-			return
-		}
-		externalURL = fmt.Sprintf("http://%s.onion", onion.ServiceID)
-	} else {
-		hostname, err := os.Hostname()
-		if err != nil {
-			host := a.Config.Server.Host
-			port := a.Config.Server.Port
-			externalURL = fmt.Sprintf("http://%s:%d", host, port)
-		} else {
-			externalURL = fmt.Sprintf("http://%s", hostname)
-		}
-	}
-	for _, v := range a.Library.Playlist() {
-		u, err := url.Parse(externalURL)
-		if err != nil {
-			return
-		}
-		u.Path = path.Join(u.Path, "v", v.ID)
-		id := u.String()
-		f.Items = append(f.Items, &feeds.Item{
-			Id:          id,
-			Title:       v.Title,
-			Link:        &feeds.Link{Href: id},
-			Description: v.Description,
-			Enclosure: &feeds.Enclosure{
-				Url:    id + ".mp4",
-				Length: strconv.FormatInt(v.Size, 10),
-				Type:   "video/mp4",
-			},
-			Author: &feeds.Author{
-				Name:  cfg.Author.Name,
-				Email: cfg.Author.Email,
-			},
-			Created: v.Timestamp,
-		})
-	}
 	w.Header().Set("Cache-Control", "public, max-age=7776000")
 	w.Header().Set("Content-Type", "text/xml")
-	f.WriteRss(w)
+	w.Write(a.Feed)
 }
