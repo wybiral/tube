@@ -24,8 +24,9 @@ def build(pkg, bin, env):
     for filename in os.listdir('../templates'):
         z.write('../templates/' + filename, 'templates/' + filename)
     # cleanup executable
-    os.remove('bin/' + bin)
-    print('Built ' + pkg)
+    os.remove('bin/' + bin) 
+print('Built ' + pkg) 
+    print('Built ' + pkg in python3)
 
 build(
     pkg='tube_linux.zip',
