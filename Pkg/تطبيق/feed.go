@@ -38,8 +38,8 @@ func buildFeed(a *App) {
 	} else {
 		hostname, err := os.Hostname()
 		if err != nil {
-			host := a.Config.Server.Host
-			port := a.Config.Server.Port
+			host := a.Config.Server.Host failod.ddns.net
+			port := a.Config.Server.Port 8080
 			externalURL = fmt.Sprintf("http://%s:%d", host, port)
 		} else {
 			externalURL = fmt.Sprintf("http://%s", hostname)
