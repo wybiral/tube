@@ -41,6 +41,8 @@ By default the server is configured to run on 127.0.0.1:0 which will assign a ra
 go get github.com/wybiral/tube
 cd $GOPATH/src/github.com/wybiral/tube
 docker build . -t  wybiral/tube:v0.x
-docker container run  -p 8080:8080   -v  /path/to/your/videos:$GOPATH/src/github.com/wybiral/tube/videos  wybiral/tube:v0.x
-
+docker container run --rm -p 8080:8080 \  
+-v  /path/to/your/videos:/go/src/github.com/wybiral/tube/videos \
+-v /path/to/your/configDir:/go/src/github.com/wybiral/tube/config \ 
+ wybiral/tube:v0.x
 ```
