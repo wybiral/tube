@@ -35,3 +35,12 @@ By default the server is configured to run on 127.0.0.1:0 which will assign a ra
 4. `go run main.go` (this will output the URL for accessing from a browser)
 5. Move videos to `$GOPATH/src/github.com/wybiral/tube/videos`
 6. Open the URL from step 4 and enjoy!
+
+## from Container
+```sh
+go get github.com/wybiral/tube
+cd $GOPATH/src/github.com/wybiral/tube
+docker build . -t  wybiral/tube:v0.x
+docker container run  -p 8080:8080   -v  /path/to/your/videos:$GOPATH/src/github.com/wybiral/tube/videos  wybiral/tube:v0.x
+
+```
