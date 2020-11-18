@@ -10,7 +10,7 @@ import (
 
 func main() {
 	cfg := app.DefaultConfig()
-	err := cfg.ReadFile("config.json")
+	err := cfg.ReadFile("config/config.json")
 	if err != nil && !os.IsNotExist(err) {
 		log.Fatal(err)
 	}
