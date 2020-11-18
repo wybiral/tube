@@ -7,7 +7,7 @@
     ],
     "server": {
         "host": "127.0.0.1",
-        "port": 0
+        "port": 80
     },
     "feed": {
         "external_url": "",
